@@ -20,7 +20,7 @@ def get_long_description() -> str:
 setup(
     name="arel",
     version=get_version("arel"),
-    description="Client-side hot reload for async Python web apps",
+    description="Browser hot reload for Python ASGI web apps",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="http://github.com/florimondmanca/arel",
