@@ -1,5 +1,10 @@
 # arel
 
+[![Build Status](https://dev.azure.com/florimondmanca/public/_apis/build/status/florimondmanca.arel?branchName=master)](https://dev.azure.com/florimondmanca/public/_build/latest?definitionId=6&branchName=master)
+[![Coverage](https://codecov.io/gh/florimondmanca/arel/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/arel)
+![Python versions](https://img.shields.io/pypi/pyversions/arel.svg)
+[![Package version](https://badge.fury.io/py/arel.svg)](https://pypi.org/project/arel)
+
 Browser hot reload for Python ASGI web apps.
 
 _This is a design document. This project has no implementation yet._
