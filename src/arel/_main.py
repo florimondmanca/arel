@@ -39,9 +39,10 @@ class HotReload:
 
     async def _notify_reload(self, path: str) -> None:
         logger.warning("Detected file change in %r. Reloading...", path)
-        await self._notify.notify()
+        # Run server-side hooks first, then update the browser.
         for callback in self.on_reload:
             await callback()
+        await self._notify.notify()
 
     @property
     def endpoint(self) -> ASGIApp:
