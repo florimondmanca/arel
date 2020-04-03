@@ -117,7 +117,7 @@ Copy this application script in a file named `app.py`:
 ```python
 # app.py
 import os
-from glob import glob
+import glob
 from pathlib import Path
 
 import arel
@@ -128,23 +128,25 @@ from starlette.routing import Route, WebSocketRoute
 from starlette.templating import Jinja2Templates
 
 DEBUG = os.getenv("DEBUG")
+BASE_DIR = Path(__file__).parent
 
-base_dir = Path(__file__).parent
-templates = Jinja2Templates(directory=str(base_dir / "templates"))
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 templates.env.globals["DEBUG"] = DEBUG
 
 PAGES = {}
 
+
 async def load_pages():
-    PAGES.clear()
-    for path in map(Path, glob("pages/*.md")):
+    for path in map(Path, glob.iglob("pages/*.md")):
         PAGES[path.name] = md.markdown(path.read_text())
+
 
 async def render(request):
     page = request.path_params.get("page")
     filename = "README.md" if page is None else f"{page}.md"
     context = {"request": request, "page_content": PAGES[filename]}
     return templates.TemplateResponse("index.jinja", context=context)
+
 
 hotreload = arel.HotReload("pages/*.md", on_reload=[load_pages])
 templates.env.globals["hotreload"] = hotreload
