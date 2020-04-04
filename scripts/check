@@ -4,7 +4,7 @@ export PREFIX=""
 if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
-export SOURCE_FILES="src/arel tests"
+export SOURCE_FILES="src/arel example/server tests"
 
 set -x
 
