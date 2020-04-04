@@ -13,5 +13,5 @@ build/
 dist/
 *.egg-info/
 
-# Private
+# Private.
 .env
