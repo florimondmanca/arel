@@ -11,7 +11,7 @@ class HotReloadEndpoint:
 
     async def _wait_client_disconnect(self, ws: WebSocket) -> None:
         async for _ in ws.iter_text():
-            pass
+            pass  # pragma: no cover
 
     async def _watch_reloads(self, ws: WebSocket) -> None:
         async for _ in self.notify.watch():

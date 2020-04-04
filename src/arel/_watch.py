@@ -24,7 +24,14 @@ class FileWatcher:
         self._path = path
         self._on_change = on_change
         self._task: Optional[asyncio.Task] = None
-        self._should_exit = asyncio.Event()
+
+    @property
+    def should_exit(self) -> asyncio.Event:
+        # Create lazily as hot reload may not run in the same thread as the one this
+        # object was created in.
+        if not hasattr(self, "_should_exit"):
+            self._should_exit = asyncio.Event()
+        return self._should_exit
 
     async def _watch(self) -> None:
         async for changes in watchgod.awatch(self._path):
@@ -35,7 +42,7 @@ class FileWatcher:
             await self._on_change(changeset)
 
     async def _main(self) -> None:
-        await run_until_first_complete((self._watch, {}), (self._should_exit.wait, {}))
+        await run_until_first_complete((self._watch, {}), (self.should_exit.wait, {}))
 
     async def startup(self) -> None:
         assert self._task is None
@@ -45,6 +52,6 @@ class FileWatcher:
     async def shutdown(self) -> None:
         assert self._task is not None
         logger.info("Stopping file watching...")
-        self._should_exit.set()
+        self.should_exit.set()
         await self._task
         self._task = None

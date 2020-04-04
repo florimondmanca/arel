@@ -48,9 +48,17 @@ class HotReload:
         return "<script>" + self._script_template.format(url=url) + "</script>"
 
     async def startup(self) -> None:
-        await self.broadcast.connect()
-        await self.watcher.startup()
+        try:
+            await self.broadcast.connect()
+            await self.watcher.startup()
+        except BaseException as exc:  # pragma: no cover
+            logger.error("Error while starting hot reload: %r", exc)
+            raise
 
     async def shutdown(self) -> None:
-        await self.watcher.shutdown()
-        await self.broadcast.disconnect()
+        try:
+            await self.watcher.shutdown()
+            await self.broadcast.disconnect()
+        except BaseException as exc:  # pragma: no cover
+            logger.error("Error while stopping hot reload: %r", exc)
+            raise
