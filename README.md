@@ -71,7 +71,7 @@ We'll create a web application that renders pages dynamically from local Markdow
 Let's start by installing dependencies:
 
 ```bash
-pip install arel starlette uvicorn markdown
+pip install arel uvicorn starlette jinja2 markdown
 ```
 
 Create a `pages/` directory, then add a few Markdown files in it:
