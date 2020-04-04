@@ -2,14 +2,14 @@ from starlette.concurrency import run_until_first_complete
 from starlette.types import Receive, Scope, Send
 from starlette.websockets import WebSocket
 
-from ._notify import WebSocketNotify
+from ._notify import Notify
 
 
 class HotReloadEndpoint:
-    def __init__(self, notify: WebSocketNotify) -> None:
+    def __init__(self, notify: Notify) -> None:
         self.notify = notify
 
-    async def _watch_client_disconnects(self, ws: WebSocket) -> None:
+    async def _wait_client_disconnect(self, ws: WebSocket) -> None:
         async for _ in ws.iter_text():
             pass
 
@@ -22,6 +22,6 @@ class HotReloadEndpoint:
         ws = WebSocket(scope, receive, send)
         await ws.accept()
         await run_until_first_complete(
-            (self._watch_client_disconnects, {"ws": ws}),
             (self._watch_reloads, {"ws": ws}),
+            (self._wait_client_disconnect, {"ws": ws}),
         )

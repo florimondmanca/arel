@@ -3,7 +3,7 @@ from typing import AsyncIterator
 from broadcaster import Broadcast
 
 
-class WebSocketNotify:
+class Notify:
     def __init__(self, broadcast: Broadcast, channel: str) -> None:
         self.broadcast = broadcast
         self.channel = channel
@@ -13,5 +13,5 @@ class WebSocketNotify:
 
     async def watch(self) -> AsyncIterator[None]:
         async with self.broadcast.subscribe(channel=self.channel) as subscriber:
-            async for event in subscriber:
+            async for _ in subscriber:
                 yield
