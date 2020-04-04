@@ -25,12 +25,12 @@ _For a working example using Starlette, see the [Example](#example) section._
 
 Although the exact instructions to set up hot reload with `arel` depend on the specifics of your ASGI framework, there are three general steps to follow:
 
-1. Create a `HotReload` instance, passing a glob pattern of files to watch:
+1. Create a `HotReload` instance, passing a directory of files to watch:
 
    ```python
    import arel
 
-   hotreload = arel.HotReload("pages/*.md")
+   hotreload = arel.HotReload("./path/to/directory")
    ```
 
 2. Register the WebSocket endpoint on your application, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
@@ -121,8 +121,6 @@ Copy this application script in a file named `app.py`:
 
 ```python
 # app.py
-import os
-import glob
 from pathlib import Path
 
 import arel
@@ -132,7 +130,8 @@ from starlette.config import Config
 from starlette.routing import Route, WebSocketRoute
 from starlette.templating import Jinja2Templates
 
-DEBUG = os.getenv("DEBUG")
+config = Config()
+DEBUG = config("DEBUG", cast=bool, default=False)
 BASE_DIR = Path(__file__).parent
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -142,30 +141,35 @@ PAGES = {}
 
 
 async def load_pages():
-    for path in map(Path, glob.iglob("pages/*.md")):
+    for path in Path("pages").glob("*.md"):
         PAGES[path.name] = md.markdown(path.read_text())
 
 
 async def render(request):
-    page = request.path_params.get("page")
-    filename = "README.md" if page is None else f"{page}.md"
+    filename = request.path_params.get("page", "README") + ".md"
     context = {"request": request, "page_content": PAGES[filename]}
     return templates.TemplateResponse("index.jinja", context=context)
 
 
-hotreload = arel.HotReload("pages/*.md", on_reload=[load_pages])
-templates.env.globals["hotreload"] = hotreload
-
 routes = [
     Route("/", render),
     Route("/{page}", render),
-    WebSocketRoute("/hot-reload", hotreload.endpoint, name="hot-reload"),
 ]
 
+on_startup = [load_pages]
+on_shutdown = []
+
+if DEBUG:
+    hotreload = arel.HotReload("./pages", on_reload=[load_pages])
+    templates.env.globals["hotreload"] = hotreload
+    routes += [
+        WebSocketRoute("/hot-reload", hotreload.endpoint, name="hot-reload"),
+    ]
+    on_startup += [hotreload.startup]
+    on_shutdown += [hotreload.shutdown]
+
 app = Starlette(
-    routes=routes,
-    on_startup=[load_pages, hotreload.startup],
-    on_shutdown=[hotreload.shutdown],
+    debug=DEBUG, routes=routes, on_startup=on_startup, on_shutdown=on_shutdown,
 )
 ```
 
