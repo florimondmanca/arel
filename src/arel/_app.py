@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import Awaitable, Callable, Sequence
 
-import broadcaster
 from starlette.concurrency import run_until_first_complete
 from starlette.types import Receive, Scope, Send
 from starlette.websockets import WebSocket
@@ -21,8 +20,7 @@ class HotReload:
         self, path: str, on_reload: Sequence[Callable[[], Awaitable[None]]] = (),
     ) -> None:
         self.on_reload = on_reload
-        self.broadcast = broadcaster.Broadcast("memory://")
-        self.notify = Notify(self.broadcast, channel="hot-reload")
+        self.notify = Notify()
         self.watcher = FileWatcher(path, on_change=self._on_changes)
 
     async def _on_changes(self, changeset: ChangeSet) -> None:
@@ -45,7 +43,6 @@ class HotReload:
 
     async def startup(self) -> None:
         try:
-            await self.broadcast.connect()
             await self.watcher.startup()
         except BaseException as exc:  # pragma: no cover
             logger.error("Error while starting hot reload: %r", exc)
@@ -54,7 +51,6 @@ class HotReload:
     async def shutdown(self) -> None:
         try:
             await self.watcher.shutdown()
-            await self.broadcast.disconnect()
         except BaseException as exc:  # pragma: no cover
             logger.error("Error while stopping hot reload: %r", exc)
             raise
