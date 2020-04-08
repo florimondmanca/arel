@@ -1,3 +1,8 @@
 #!/bin/sh -e
 
-exec venv/bin/uvicorn example.server:app
+export PREFIX=""
+if [ -d 'venv' ] ; then
+    export PREFIX="venv/bin/"
+fi
+
+${PREFIX}uvicorn example.server:app

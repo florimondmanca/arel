@@ -5,7 +5,6 @@ markdown==3.1.*
 uvicorn==0.11.*
 
 autoflake
-asgi-lifespan==1.*
 black
 flake8
 httpx==0.12.*
