@@ -1,0 +1,3 @@
+#!/bin/sh -e
+
+exec venv/bin/uvicorn example.server:app

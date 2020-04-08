@@ -1,6 +1,6 @@
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.routing import Route, Mount
+from starlette.routing import Route, WebSocketRoute
 
 from . import settings
 from .content import get_page_content
@@ -20,5 +20,5 @@ routes: list = [
 
 if settings.DEBUG:
     routes += [
-        Mount("/hot-reload", hotreload, name="hot-reload"),
+        WebSocketRoute("/hot-reload", hotreload, name="hot-reload"),
     ]

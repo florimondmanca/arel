@@ -8,6 +8,10 @@ python -m venv venv
 ${PREFIX}python -m pip install -U pip
 ${PREFIX}python -m pip install -r requirements.txt
 
+if [ ! -f .env]; then
+  echo "DEBUG=true" > .env
+fi
+
 set +x
 
 echo

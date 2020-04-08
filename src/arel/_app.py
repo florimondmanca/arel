@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import Awaitable, Callable, Sequence
 
 import broadcaster
-from starlette.types import ASGIApp
+from starlette.concurrency import run_until_first_complete
+from starlette.types import Receive, Scope, Send
+from starlette.websockets import WebSocket
 
-from ._endpoints import HotReloadEndpoint
 from ._notify import Notify
 from ._watch import ChangeSet, FileWatcher
 
@@ -25,22 +26,17 @@ class HotReload:
         self.watcher = FileWatcher(path, on_change=self._on_changes)
 
     async def _on_changes(self, changeset: ChangeSet) -> None:
-        self._log_changes(changeset)
-        # Run server-side hooks first, then update the browser.
-        for callback in self.on_reload:
-            await callback()
-        await self.notify.notify()
-
-    def _log_changes(self, changeset: ChangeSet) -> None:
         description = ", ".join(
             f"file {event} at {', '.join(f'{event!r}' for event in changeset[event])}"
             for event in changeset
         )
         logger.warning("Detected %s. Triggering reload...", description)
 
-    @property
-    def endpoint(self) -> ASGIApp:
-        return HotReloadEndpoint(self.notify)
+        # Run server-side hooks first.
+        for callback in self.on_reload:
+            await callback()
+
+        await self.notify.notify()
 
     def script(self, url: str) -> str:
         if not hasattr(self, "_script_template"):
@@ -62,3 +58,20 @@ class HotReload:
         except BaseException as exc:  # pragma: no cover
             logger.error("Error while stopping hot reload: %r", exc)
             raise
+
+    async def _wait_client_disconnect(self, ws: WebSocket) -> None:
+        async for _ in ws.iter_text():
+            pass  # pragma: no cover
+
+    async def _watch_reloads(self, ws: WebSocket) -> None:
+        async for _ in self.notify.watch():
+            await ws.send_text("reload")
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        assert scope["type"] == "websocket"
+        ws = WebSocket(scope, receive, send)
+        await ws.accept()
+        await run_until_first_complete(
+            (self._watch_reloads, {"ws": ws}),
+            (self._wait_client_disconnect, {"ws": ws}),
+        )
