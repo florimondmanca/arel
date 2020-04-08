@@ -7,7 +7,7 @@
 
 Browser hot reload for Python ASGI web apps.
 
-_This is a design document. This project has no implementation yet._
+_This is project in early alpha, and has not been released yet._
 
 ## Overview
 
@@ -25,7 +25,7 @@ _For a working example using Starlette, see the [Example](#example) section._
 
 Although the exact instructions to set up hot reload with `arel` depend on the specifics of your ASGI framework, there are three general steps to follow:
 
-1. Create a `HotReload` ASGI application, passing a directory of files to watch:
+1. Create an `HotReload` instance, passing a directory of files to watch:
 
    ```python
    import arel
@@ -33,14 +33,14 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
    hotreload = arel.HotReload("./path/to/directory")
    ```
 
-2. Mount the application, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
+2. Mount the hot reload endpoint, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
 
    ```python
    from starlette.applications import Starlette
-   from starlette.routing import Mount
+   from starlette.routing import WebSocketRoute
 
    app = Starlette(
-       routes=[Mount("/hot-reload", hotreload, name="hot-reload")],
+       routes=[WebSocketRoute("/hot-reload", hotreload, name="hot-reload")],
        on_startup=[hotreload.startup],
        on_shutdown=[hot_reaload.shutdown],
    )

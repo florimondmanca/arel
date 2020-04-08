@@ -9,7 +9,7 @@ During development, if we make edits to the content we'd like the browser to aut
 ## Installation
 
 - Clone the [`arel`](https://github.com/florimondmanca/arel) repository.
-- Move here: `$ cd example/`.
+- Make sure you are in the repository root directory.
 - Install dependencies: `$ scripts/install`.
 
 ## Usage
