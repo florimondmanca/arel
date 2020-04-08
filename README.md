@@ -7,7 +7,7 @@
 
 Browser hot reload for Python ASGI web apps.
 
-_This is a design document. This project has no implementation yet._
+_This is project in early alpha, and has not been released yet._
 
 ## Overview
 
