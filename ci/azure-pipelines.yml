@@ -30,6 +30,7 @@ jobs:
           pythonVersion: $(pythonVersion)
       - script: scripts/test
         displayName: "Run tests"
-      - script: curl -s https://codecov.io/bash | bash
+      - script: |
+          bash <(curl -s https://codecov.io/bash) -Z -C $(Build.SourceVersion)
         condition: eq(variables['uploadCoverage'], true)
         displayName: "Upload coverage"
