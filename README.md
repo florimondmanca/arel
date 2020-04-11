@@ -7,8 +7,6 @@
 
 Browser hot reload for Python ASGI web apps.
 
-_This is project in early alpha, and has not been released yet._
-
 ![](https://github.com/florimondmanca/arel/blob/master/docs/demo.gif)
 
 ## Overview
@@ -20,6 +18,14 @@ _This is project in early alpha, and has not been released yet._
 **How does it work?**
 
 `arel` watches changes over a set of files. When a file changes, `arel` notifies the browser (using WebSocket), and an injected client script triggers a page reload. You can register your own reload hooks for any extra server-side operations, such as reloading cached content or re-initializing other server-side resources.
+
+## Installation
+
+_This is project in early alpha status. Be sure to pin your dependencies._
+
+```bash
+pip install 'arel==0.1.*'
+```
 
 ## Quickstart
 

@@ -34,7 +34,7 @@ setup(
     python_requires=">=3.7",
     license="MIT",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Framework :: AsyncIO",
