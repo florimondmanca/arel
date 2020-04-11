@@ -7,7 +7,7 @@
 
 Browser hot reload for Python ASGI web apps.
 
-![](https://github.com/florimondmanca/arel/blob/master/docs/demo.gif)
+![](https://media.githubusercontent.com/media/florimondmanca/arel/master/docs/demo.gif)
 
 ## Overview
 
