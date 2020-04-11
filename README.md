@@ -9,6 +9,8 @@ Browser hot reload for Python ASGI web apps.
 
 _This is project in early alpha, and has not been released yet._
 
+![](https://github.com/florimondmanca/arel/blob/master/docs/demo.gif)
+
 ## Overview
 
 **What is this for?**
