@@ -1,3 +1,10 @@
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: github
+      name: florimondmanca/azure-pipelines-templates
+
 trigger:
   - master
 
@@ -11,7 +18,7 @@ variables:
 jobs:
   - job: Check
     steps:
-      - template: templates/install.yml
+      - template: python-install.yml@templates
         parameters:
           pythonVersion: "3.8"
 
@@ -25,7 +32,7 @@ jobs:
           uploadCoverage: true
 
     steps:
-      - template: templates/install.yml
+      - template: python-install.yml@templates
         parameters:
           pythonVersion: $(pythonVersion)
       - script: scripts/test
