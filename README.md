@@ -50,7 +50,7 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
    app = Starlette(
        routes=[WebSocketRoute("/hot-reload", hotreload, name="hot-reload")],
        on_startup=[hotreload.startup],
-       on_shutdown=[hot_reaload.shutdown],
+       on_shutdown=[hotreload.shutdown],
    )
    ```
 
