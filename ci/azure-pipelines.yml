@@ -30,12 +30,6 @@ jobs:
           pythonVersion: $(pythonVersion)
       - script: scripts/test
         displayName: "Run tests"
-      - script: |
-          if [ -f .coverage ]; then
-            python -m pip install codecov;
-            codecov --required;
-          fi
+      - script: curl -s https://codecov.io/bash | bash
         condition: eq(variables['uploadCoverage'], true)
-        env:
-          CODECOV_TOKEN: $(codecovToken)
         displayName: "Upload coverage"
