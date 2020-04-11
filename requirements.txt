@@ -1,9 +1,12 @@
 -e .
 
+# Example.
 jinja2==2.*
 markdown==3.1.*
+starlette==0.13.*
 uvicorn==0.11.*
 
+# Tooling and tests.
 autoflake
 black
 flake8
