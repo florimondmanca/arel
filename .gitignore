@@ -1,6 +1,5 @@
 # Tooling.
 .coverage
-coverage.xml
 venv*/
 
 # Caches.
