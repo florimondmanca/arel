@@ -67,7 +67,7 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
 
      <!-- Hot reload script -->
      {% if DEBUG %}
-       {{ hotreload.script(url_for('hot-reload')) }}
+       {{ hotreload.script(url_for('hot-reload')) | safe }}
      {% endif %}
    </body>
    ```
