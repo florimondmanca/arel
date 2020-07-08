@@ -7,6 +7,8 @@ import httpx
 import pytest
 import websockets
 
+from .common import EXAMPLE_DIR
+
 
 @contextmanager
 def make_change(path: Path) -> Iterator[None]:
@@ -26,7 +28,7 @@ async def test_example() -> None:
         assert "window.location.reload()" in response.text
 
     async with websockets.connect("ws://localhost:8000/hot-reload") as ws:
-        page1 = Path(".") / "example" / "pages" / "page1.md"
+        page1 = EXAMPLE_DIR / "pages" / "page1.md"
         with make_change(page1):
             message = await asyncio.wait_for(ws.recv(), timeout=1)
         assert message == "reload"
