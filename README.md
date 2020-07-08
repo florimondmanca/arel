@@ -13,7 +13,7 @@ Browser hot reload for Python ASGI web apps.
 
 **What is this for?**
 
-`arel` can be used to implement development-only hot-reload for non-Python files that are not read from disk on each request. This may include GraphQL schemas, cached rendered Markdown content, etc.
+`arel` can be used to implement development-only hot-reload for non-Python files that are not read from disk on each request. This may include HTML templates, GraphQL schemas, cached rendered Markdown content, etc.
 
 **How does it work?**
 
@@ -33,12 +33,20 @@ _For a working example using Starlette, see the [Example](#example) section._
 
 Although the exact instructions to set up hot reload with `arel` depend on the specifics of your ASGI framework, there are three general steps to follow:
 
-1. Create an `HotReload` instance, passing a directory of files to watch:
+1. Create an `HotReload` instance, passing one or more directories of files to watch, and optionally a list of callbacks to call before a reload is triggered:
 
    ```python
    import arel
 
-   hotreload = arel.HotReload("./path/to/directory")
+   async def reload_data():
+       print("Reloading server data...")
+
+   hotreload = arel.HotReload(
+       paths=[
+           arel.Path("./server/data", on_reload=[reload_data]),
+           arel.Path("./server/static"),
+       ],
+   )
    ```
 
 2. Mount the hot reload endpoint, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
@@ -74,7 +82,7 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
 
 ## Example
 
-The [`example` directory](https://github.com/florimondmanca/arel/tree/master/example) contains an example Markdown-powered website that uses `arel` to refresh the browser when Markdown content changes.
+The [`example` directory](https://github.com/florimondmanca/arel/tree/master/example) contains an example Markdown-powered website that uses `arel` to refresh the browser when Markdown content or HTML templates change.
 
 ## License
 

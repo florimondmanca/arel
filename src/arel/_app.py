@@ -1,29 +1,37 @@
+import functools
 import logging
-from pathlib import Path
-from typing import Awaitable, Callable, Sequence
+import pathlib
+from typing import List, Sequence
 
 from starlette.concurrency import run_until_first_complete
 from starlette.types import Receive, Scope, Send
 from starlette.websockets import WebSocket
 
+from ._models import Path
 from ._notify import Notify
+from ._types import ReloadFunc
 from ._watch import ChangeSet, FileWatcher
 
-SCRIPT_TEMPLATE_PATH = Path(__file__).parent / "data" / "client.js"
+SCRIPT_TEMPLATE_PATH = pathlib.Path(__file__).parent / "data" / "client.js"
 assert SCRIPT_TEMPLATE_PATH.exists()
 
 logger = logging.getLogger(__name__)
 
 
 class HotReload:
-    def __init__(
-        self, path: str, on_reload: Sequence[Callable[[], Awaitable[None]]] = (),
-    ) -> None:
-        self.on_reload = on_reload
+    def __init__(self, paths: Sequence[Path]) -> None:
         self.notify = Notify()
-        self.watcher = FileWatcher(path, on_change=self._on_changes)
+        self.watchers = [
+            FileWatcher(
+                path,
+                on_change=functools.partial(self._on_changes, on_reload=on_reload),
+            )
+            for path, on_reload in paths
+        ]
 
-    async def _on_changes(self, changeset: ChangeSet) -> None:
+    async def _on_changes(
+        self, changeset: ChangeSet, *, on_reload: List[ReloadFunc]
+    ) -> None:
         description = ", ".join(
             f"file {event} at {', '.join(f'{event!r}' for event in changeset[event])}"
             for event in changeset
@@ -31,7 +39,7 @@ class HotReload:
         logger.warning("Detected %s. Triggering reload...", description)
 
         # Run server-side hooks first.
-        for callback in self.on_reload:
+        for callback in on_reload:
             await callback()
 
         await self.notify.notify()
@@ -43,14 +51,16 @@ class HotReload:
 
     async def startup(self) -> None:
         try:
-            await self.watcher.startup()
+            for watcher in self.watchers:
+                await watcher.startup()
         except BaseException as exc:  # pragma: no cover
             logger.error("Error while starting hot reload: %r", exc)
             raise
 
     async def shutdown(self) -> None:
         try:
-            await self.watcher.shutdown()
+            for watcher in self.watchers:
+                await watcher.shutdown()
         except BaseException as exc:  # pragma: no cover
             logger.error("Error while stopping hot reload: %r", exc)
             raise
