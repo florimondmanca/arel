@@ -29,6 +29,9 @@ async def test_example() -> None:
 
     async with websockets.connect("ws://localhost:8000/hot-reload") as ws:
         page1 = EXAMPLE_DIR / "pages" / "page1.md"
-        with make_change(page1):
-            message = await asyncio.wait_for(ws.recv(), timeout=1)
-        assert message == "reload"
+        index = EXAMPLE_DIR / "server" / "templates" / "index.jinja"
+        with make_change(page1), make_change(index):
+            assert await asyncio.wait_for(ws.recv(), timeout=1) == "reload"
+            assert await asyncio.wait_for(ws.recv(), timeout=1) == "reload"
+            with pytest.raises(asyncio.TimeoutError):
+                await asyncio.wait_for(ws.recv(), timeout=0.1)
