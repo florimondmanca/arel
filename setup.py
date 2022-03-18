@@ -30,7 +30,7 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
-    install_requires=["starlette==0.*", "watchgod==0.6.*"],
+    install_requires=["starlette==0.*", "watchgod==0.*"],
     python_requires=">=3.7",
     license="MIT",
     classifiers=[

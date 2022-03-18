@@ -5,7 +5,9 @@ from typing import Iterator
 
 import httpx
 import pytest
-import websockets
+
+# See: https://github.com/aaugustin/websockets/issues/940#issuecomment-874012438  # noqa: E501
+from websockets.client import connect
 
 from .common import EXAMPLE_DIR
 
@@ -27,7 +29,7 @@ async def test_example() -> None:
         response = await client.get("http://localhost:8000")
         assert "window.location.reload()" in response.text
 
-    async with websockets.connect("ws://localhost:8000/hot-reload") as ws:
+    async with connect("ws://localhost:8000/hot-reload") as ws:
         page1 = EXAMPLE_DIR / "pages" / "page1.md"
         index = EXAMPLE_DIR / "server" / "templates" / "index.jinja"
         with make_change(page1), make_change(index):

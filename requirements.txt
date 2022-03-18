@@ -5,19 +5,21 @@ twine
 wheel
 
 # Example.
-jinja2==2.*
-markdown==3.1.*
-starlette==0.13.*
-uvicorn==0.11.*
+jinja2==3.*
+markdown==3.3.*
+starlette==0.19.*
+uvicorn==0.17.*
 
 # Tooling and tests.
 autoflake
-black==20.8b1
+black==22.1.0
 flake8
-httpx==0.12.*
+httpx==0.22.*
 isort==5.*
 mypy
 pytest
 pytest-asyncio
 pytest-cov
 seed-isort-config
+types-markdown
+websockets==10.*
