@@ -21,8 +21,6 @@ Browser hot reload for Python ASGI web apps.
 
 ## Installation
 
-_This is project in early alpha status. Be sure to pin your dependencies._
-
 ```bash
 pip install 'arel==0.2.*'
 ```
