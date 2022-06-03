@@ -7,14 +7,14 @@ wheel
 # Example.
 jinja2==3.*
 markdown==3.3.*
-starlette==0.19.*
+starlette==0.20.*
 uvicorn==0.17.*
 
 # Tooling and tests.
 autoflake
-black==22.1.0
+black==22.3.0
 flake8
-httpx==0.22.*
+httpx==0.23.*
 isort==5.*
 mypy
 pytest
