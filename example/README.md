@@ -10,11 +10,11 @@ During development, if we make edits to the content we'd like the browser to aut
 
 - Clone the [`arel`](https://github.com/florimondmanca/arel) repository.
 - Make sure you are in the repository root directory.
-- Install dependencies: `$ scripts/install`.
+- Install dependencies: `$ make install`.
 
 ## Usage
 
-- Start the server: `$ scripts/serve`.
+- Start the server: `$ make serve`.
 - Open your browser at http://localhost:8000.
 - Add, edit or delete one of the Markdown files in `pages/`.
 - A message should appear in the console, and the page should refresh automatically.
