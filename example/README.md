@@ -10,7 +10,7 @@ During development, if we make edits to the content we'd like the browser to aut
 
 - Clone the [`arel`](https://github.com/florimondmanca/arel) repository.
 - Make sure you are in the repository root directory.
-- Install dependencies: `$ pip install -r requirements.txt`.
+- Install dependencies: `$ make install`.
 
 ## Usage
 
