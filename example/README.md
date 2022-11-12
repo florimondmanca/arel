@@ -10,11 +10,11 @@ During development, if we make edits to the content we'd like the browser to aut
 
 - Clone the [`arel`](https://github.com/florimondmanca/arel) repository.
 - Make sure you are in the repository root directory.
-- Install dependencies: `$ scripts/install`.
+- Install dependencies: `$ pip install -r requirements.txt`.
 
 ## Usage
 
-- Start the server: `$ scripts/serve`.
+- Start the server: `$ uvicorn server.app:app`.
 - Open your browser at http://localhost:8000.
 - Add, edit or delete one of the Markdown files in `pages/`.
 - A message should appear in the console, and the page should refresh automatically.
