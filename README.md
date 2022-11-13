@@ -5,19 +5,18 @@
 ![Python versions](https://img.shields.io/pypi/pyversions/arel.svg)
 [![Package version](https://badge.fury.io/py/arel.svg)](https://pypi.org/project/arel)
 
-Browser hot reload for Python ASGI web apps.
+Browser hot reload for Python ASGI web apps. Supports any ASGI web framework and server.
 
 ![](https://media.githubusercontent.com/media/florimondmanca/arel/master/docs/demo.gif)
 
-## Overview
+**Contents**
 
-**What is this for?**
-
-`arel` can be used to implement development-only hot-reload for non-Python files that are not read from disk on each request. This may include HTML templates, GraphQL schemas, cached rendered Markdown content, etc.
-
-**How does it work?**
-
-`arel` watches changes over a set of files. When a file changes, `arel` notifies the browser (using WebSocket), and an injected client script triggers a page reload. You can register your own reload hooks for any extra server-side operations, such as reloading cached content or re-initializing other server-side resources.
+* [Installation](#installation)
+* [Quickstart](#quickstart)
+* [Usage](#usage)
+* [How does this work?](#how-does-this-work)
+* [Example](#example)
+* [API Reference](#api-reference)
 
 ## Installation
 
@@ -27,60 +26,158 @@ pip install 'arel==0.2.*'
 
 ## Quickstart
 
-_For a working example using Starlette, see the [Example](#example) section._
+```python
+import arel
+from starlette.applications import Starlette
+from starlette.routing import Route
+from starlette.middleware import Middleware
+from starlette.responses import HTMLResponse
 
-Although the exact instructions to set up hot reload with `arel` depend on the specifics of your ASGI framework, there are three general steps to follow:
+HOME_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hot reload</title>
+  </head>
+  <body>
+    <h1>Hello, hot reload!</h1>
+  </body>
+</html>
+"""
 
-1. Create an `HotReload` instance, passing one or more directories of files to watch, and optionally a list of callbacks to call before a reload is triggered:
+async def home(request):
+    return HTMLResponse(HOME_HTML)
 
-   ```python
-   import arel
+app = Starlette(
+    routes=[Route("/", home)],
+    middleware=[Middleware(arel.HotReloadMiddleware)],
+)
+```
 
-   async def reload_data():
-       print("Reloading server data...")
+Save this file as `main.py`, then start a server, e.g. with [Uvicorn](https://uvicorn.org):
 
-   hotreload = arel.HotReload(
-       paths=[
-           arel.Path("./server/data", on_reload=[reload_data]),
-           arel.Path("./server/static"),
-       ],
-   )
-   ```
+```console
+$ uvicorn main:app --reload
+```
 
-2. Mount the hot reload endpoint, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
+Open http://localhost:8000. Now change the HTML content in `main.py`, and hit save. The browser should reload the page automatically!
 
-   ```python
-   from starlette.applications import Starlette
-   from starlette.routing import WebSocketRoute
+## Usage
 
-   app = Starlette(
-       routes=[WebSocketRoute("/hot-reload", hotreload, name="hot-reload")],
-       on_startup=[hotreload.startup],
-       on_shutdown=[hotreload.shutdown],
-   )
-   ```
+### Default behavior
 
-3. Add the JavaScript code to your website HTML. If using [Starlette with Jinja templates](https://www.starlette.io/templates/), you can do this by updating the global environment, then injecting the script into your base template:
+By default, [`HotReloadMiddleware`](#hotreloadmiddleware) only watches for server disconnects, and reloads the page when the server comes back up.
 
-   ```python
-   templates.env.globals["DEBUG"] = os.getenv("DEBUG")  # Development flag.
-   templates.env.globals["hotreload"] = hotreload
-   ```
+This should play nicely with the server reload features of your ASGI server of choice (Uvicorn, Hypercorn, Daphne...).
 
-   ```jinja
-   <body>
-     <!-- Page content... -->
+### Reloading on non-Python files
 
-     <!-- Hot reload script -->
-     {% if DEBUG %}
-       {{ hotreload.script(url_for('hot-reload')) | safe }}
-     {% endif %}
-   </body>
-   ```
+`arel` can watch an arbitrary set of directories and trigger browser reloads when changes are detected. This can be used to reload in case of changes to static files, HTML templates, GraphQL schemas, etc.
+
+To do so, use the `paths` option, which expects a list of [`Path`](#path) instances:
+
+```python
+middleware = [
+    Middleware(
+        arel.HotReloadMiddleware,
+        paths=[arel.Path("./templates")],
+    ),
+]
+```
+
+### Extra reload hooks
+
+You can register extra reload hooks to run extra server-side operations before triggering the browser reload, such as reloading cached content or re-initializing other server side resources.
+
+```python
+async def reload_data():
+    print("Reloading server data...")
+
+middleware = [
+    Middleware(
+        arel.HotReloadMiddleware,
+        paths=[arel.Path("./data", on_reload=[reload_data])],
+    ),
+]
+```
+
+### Enabling hot reload conditionally
+
+You probably only want to enable hot reload when running in some kind of debug mode.
+
+For example, if using Starlette, you can conditionally enable hot reload when the `DEBUG` environment variable is set, like so...
+
+```python
+import arel
+from starlette.applications import Starlette
+from starlette.config import Config
+from starlette.middleware import Middleware
+
+config = Config(".env")
+DEBUG = config("DEBUG", cast=bool)
+
+middleware = []
+
+if DEBUG:
+    middleware.append(Middleware(arel.HotReloadMiddleware))
+
+app = Starlette(
+    debug=DEBUG,
+    middleware=middleware,
+)
+```
+
+## How does this work?
+
+`HotReloadMiddleware` provides a few different things:
+
+* File watching over the provided `paths=...`.
+* A WebSocket endpoint that notifies the browser when changes are detected.
+* A JavaScript snippet which connects to the WebSocket endpoint and performs page reloads.
+
+The JS code is automatically inserted by the middleware into any HTML response returned by the application. This should make `arel` work automatically with both your own HTML endpoints as well as third-party endpoints, such as Swagger UI documentation provided by FastAPI.
+
+If the server disconnects, the JavaScript snippet will also refresh the page when reconnecting. This allows integration with ASGI servers that have reload functionality for the Python source code.
+
+`HotReloadMiddleware` is a [pure ASGI](https://www.starlette.io/middleware/#pure-asgi-middleware) middleware, so you should be able to use it with any ASGI framework, including Starlette, FastAPI, or Quart.
 
 ## Example
 
-The [`example` directory](https://github.com/florimondmanca/arel/tree/master/example) contains an example Markdown-powered website that uses `arel` to refresh the browser when Markdown content or HTML templates change.
+The [`example` directory](https://github.com/florimondmanca/arel/tree/master/example) contains an example Markdown-powered website. It uses `arel` to refresh the browser when Markdown content or HTML templates change.
+
+To spin up this example server, run:
+
+```
+make serve
+```
+
+Then visit http://localhost:8000. The web console will show you that your browser has connected to `arel`.
+
+Now, add, edit or delete one of the Markdown files in `pages/`. The page should refresh automatically.
+
+Lastly, try changing one of the Python files in `example/server/`, then hit save to trigger a server reload. Again, the browser should automatically refresh the page.
+
+## API Reference
+
+### `HotReloadMiddleware`
+
+```python
+app = HotReloadMiddleware(app, ...)
+```
+
+Parameters:
+
+* `app` - The parent ASGI app.
+* `paths` - _(Optional)_ `list[Path]` - A list of [`Path`](#path) instances to watch files over.
+
+### `Path`
+
+Parameters:
+
+* `path` - `Union[str, pathlib.Path]` - The path to watch files over. Supports paths relative to the current working directory, such as `"./templates"`. Glob patterns are not supported.
+* `on_reload` - _(Optional)_ `Sequence[async () -> None]` - A list of async callbacks to run when changes are detected on this path.
 
 ## License
 

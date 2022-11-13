@@ -29,11 +29,21 @@ async def test_example() -> None:
         response = await client.get("http://localhost:8000")
         assert "window.location.reload()" in response.text
 
-    async with connect("ws://localhost:8000/hot-reload") as ws:
+        response = await client.get("http://localhost:8000/api")
+        assert response.status_code == 200
+        assert response.json() == {"message": "Hello, world!"}
+
+    async with connect("ws://localhost:8000/arel/hot-reload") as ws:
         page1 = EXAMPLE_DIR / "pages" / "page1.md"
         index = EXAMPLE_DIR / "server" / "templates" / "index.jinja"
+        stripped = EXAMPLE_DIR / "server" / "templates" / "stripped.jinja"
+
         with make_change(page1), make_change(index):
             assert await asyncio.wait_for(ws.recv(), timeout=1) == "reload"
             assert await asyncio.wait_for(ws.recv(), timeout=1) == "reload"
-            with pytest.raises(asyncio.TimeoutError):
-                await asyncio.wait_for(ws.recv(), timeout=0.1)
+
+            with make_change(stripped):
+                assert await asyncio.wait_for(ws.recv(), timeout=1) == "reload"
+
+                with pytest.raises(asyncio.TimeoutError):
+                    await asyncio.wait_for(ws.recv(), timeout=0.1)

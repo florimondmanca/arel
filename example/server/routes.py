@@ -1,11 +1,10 @@
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import Response
-from starlette.routing import Route, WebSocketRoute
+from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
 
-from . import settings
 from .content import get_page_content
-from .resources import hotreload, templates
+from .resources import templates
 
 
 async def render(request: Request) -> Response:
@@ -21,12 +20,18 @@ async def render(request: Request) -> Response:
     return templates.TemplateResponse("index.jinja", context=context)
 
 
+async def api(request: Request) -> Response:
+    return JSONResponse({"message": "Hello, world!"})
+
+
+async def stripped(request: Request) -> Response:
+    context = {"request": request}
+    return templates.TemplateResponse("stripped.jinja", context=context)
+
+
 routes: list = [
     Route("/", render),
+    Route("/api", api),
+    Route("/stripped", stripped),
     Route("/{page:path}", render),
 ]
-
-if settings.DEBUG:
-    routes += [
-        WebSocketRoute("/hot-reload", hotreload, name="hot-reload"),
-    ]

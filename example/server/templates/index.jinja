@@ -7,9 +7,5 @@
   </head>
   <body>
     {{ page_content | safe }}
-
-    {% if DEBUG %}
-      {{ hotreload.script(url_for("hot-reload")) | safe }}
-    {% endif %}
   </body>
 </html>

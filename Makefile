@@ -29,7 +29,7 @@ publish:
 	${bin}twine upload dist/*
 
 serve:
-	${bin}uvicorn example.server:app --reload --reload-dir ./example
+	DEBUG=true ${bin}uvicorn example.server:app --reload --reload-dir ./example
 
 test:
 	${bin}pytest
