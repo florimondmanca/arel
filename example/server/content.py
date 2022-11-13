@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import markdown as md
 
@@ -12,7 +12,7 @@ async def load_pages() -> None:
         PAGES[path.name] = md.markdown(path.read_text())
 
 
-def get_page_content(page: str = None) -> str:
+def get_page_content(page: Optional[str] = None) -> str:
     if page is None:
         page = "README"
     filename = f"{page}.md"
