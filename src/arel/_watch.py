@@ -4,7 +4,6 @@ import logging
 from typing import Awaitable, Callable, Dict, List, Optional
 
 import watchgod
-from starlette.concurrency import run_until_first_complete
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +25,12 @@ class FileWatcher:
         self._task: Optional[asyncio.Task] = None
 
     @property
-    def should_exit(self) -> asyncio.Event:
+    def _should_exit(self) -> asyncio.Event:
         # Create lazily as hot reload may not run in the same thread as the one this
         # object was created in.
-        if not hasattr(self, "_should_exit"):
-            self._should_exit = asyncio.Event()
-        return self._should_exit
+        if not hasattr(self, "_should_exit_obj"):
+            self._should_exit_obj = asyncio.Event()
+        return self._should_exit_obj
 
     async def _watch(self) -> None:
         async for changes in watchgod.awatch(self._path):
@@ -42,7 +41,13 @@ class FileWatcher:
             await self._on_change(changeset)
 
     async def _main(self) -> None:
-        await run_until_first_complete((self._watch, {}), (self.should_exit.wait, {}))
+        tasks = [
+            asyncio.create_task(self._watch()),
+            asyncio.create_task(self._should_exit.wait()),
+        ]
+        (done, pending) = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        [task.cancel() for task in pending]
+        [task.result() for task in done]
 
     async def startup(self) -> None:
         assert self._task is None
@@ -52,6 +57,6 @@ class FileWatcher:
     async def shutdown(self) -> None:
         assert self._task is not None
         logger.info("Stopping file watching...")
-        self.should_exit.set()
+        self._should_exit.set()
         await self._task
         self._task = None
