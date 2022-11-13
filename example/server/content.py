@@ -12,8 +12,6 @@ async def load_pages() -> None:
         PAGES[path.name] = md.markdown(path.read_text())
 
 
-def get_page_content(page: Optional[str] = None) -> str:
-    if page is None:
-        page = "README"
+def get_page_content(page: str) -> Optional[str]:
     filename = f"{page}.md"
-    return PAGES[filename]
+    return PAGES.get(filename)

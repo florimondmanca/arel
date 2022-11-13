@@ -1,6 +1,7 @@
 import functools
 import logging
 import pathlib
+import string
 from typing import List, Sequence
 
 from starlette.concurrency import run_until_first_complete
@@ -18,8 +19,12 @@ assert SCRIPT_TEMPLATE_PATH.exists()
 logger = logging.getLogger(__name__)
 
 
+class _Template(string.Template):
+    delimiter = "$arel::"
+
+
 class HotReload:
-    def __init__(self, paths: Sequence[Path]) -> None:
+    def __init__(self, paths: Sequence[Path], reconnect_interval: float = 1.0) -> None:
         self.notify = Notify()
         self.watchers = [
             FileWatcher(
@@ -28,6 +33,7 @@ class HotReload:
             )
             for path, on_reload in paths
         ]
+        self._reconnect_interval = reconnect_interval
 
     async def _on_changes(
         self, changeset: ChangeSet, *, on_reload: List[ReloadFunc]
@@ -46,8 +52,13 @@ class HotReload:
 
     def script(self, url: str) -> str:
         if not hasattr(self, "_script_template"):
-            self._script_template = SCRIPT_TEMPLATE_PATH.read_text()
-        return "<script>" + self._script_template.format(url=url) + "</script>"
+            self._script_template = _Template(SCRIPT_TEMPLATE_PATH.read_text())
+
+        content = self._script_template.substitute(
+            {"url": url, "reconnect_interval": self._reconnect_interval}
+        )
+
+        return f"<script>{content}</script>"
 
     async def startup(self) -> None:
         try:
