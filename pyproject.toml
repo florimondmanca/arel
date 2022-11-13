@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arel"
+description = "Browser hot reload for Python ASGI web apps"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+authors = [
+  { name = "Florimond Manca", email = "florimond.manca@protonmail.com" },
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Framework :: AsyncIO",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+  "starlette==0.*",
+  "watchgod==0.*",
+]
+dynamic = ["version", "readme"]
+
+[project.urls]
+"Homepage" = "https://github.com/florimondmanca/arel"
+
+[tool.setuptools.dynamic]
+version = { attr = "arel.__version__" }
+readme = { file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown" }

@@ -1,11 +1,8 @@
-venv = venv
-bin = ${venv}/bin/
+bin = venv/bin/
 pysources = src example/server tests
 
 build:
-	${bin}python setup.py sdist bdist_wheel
-	${bin}twine check dist/*
-	rm -r build
+	${bin}python -m build
 
 check:
 	${bin}black --check --diff --target-version=py37 ${pysources}
@@ -13,9 +10,14 @@ check:
 	${bin}mypy ${pysources}
 	${bin}isort --check --diff ${pysources}
 
-install:
-	python3 -m venv ${venv}
+install: install-python
+
+venv:
+	python3 -m venv venv
+
+install-python: venv
 	${bin}pip install -U pip wheel
+	${bin}pip install -U build
 	${bin}pip install -r requirements.txt
 
 format:
