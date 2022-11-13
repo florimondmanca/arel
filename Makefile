@@ -27,7 +27,7 @@ publish:
 	${bin}twine upload dist/*
 
 serve:
-	${bin}uvicorn example.server:app
+	${bin}python -m example.server.main
 
 test:
 	${bin}pytest

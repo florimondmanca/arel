@@ -6,20 +6,19 @@ wheel
 
 # Example.
 jinja2==3.*
-markdown==3.3.*
-starlette==0.20.*
-uvicorn==0.17.*
+markdown==3.4.*
+starlette==0.21.*
+uvicorn==0.19.*
 
 # Tooling and tests.
 autoflake
-black==22.3.0
-flake8
+black==22.10.*
+flake8==5.*
 httpx==0.23.*
 isort==5.*
-mypy
-pytest
-pytest-asyncio
+mypy==0.990
+pytest==7.*
+pytest-asyncio==0.20.*
 pytest-cov
-seed-isort-config
 types-markdown
 websockets==10.*
