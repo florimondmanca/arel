@@ -33,7 +33,7 @@ async def test_example() -> None:
         assert response.status_code == 200
         assert response.json() == {"message": "Hello, world!"}
 
-    async with connect("ws://localhost:8000/arel/hot-reload") as ws:
+    async with connect("ws://localhost:8000/__arel__") as ws:
         page1 = EXAMPLE_DIR / "pages" / "page1.md"
         index = EXAMPLE_DIR / "server" / "templates" / "index.jinja"
         stripped = EXAMPLE_DIR / "server" / "templates" / "stripped.jinja"

@@ -3,9 +3,11 @@ import functools
 import logging
 import pathlib
 import string
-from typing import Callable, List, Optional, Sequence
+import textwrap
+import warnings
+from typing import Callable, List, Sequence
 
-from starlette.datastructures import Headers
+from starlette.datastructures import MutableHeaders
 from starlette.types import Message, Receive, Scope, Send
 from starlette.websockets import WebSocket
 
@@ -14,10 +16,10 @@ from ._notify import Notify
 from ._types import ReloadFunc
 from ._watch import ChangeSet, FileWatcher
 
+logger = logging.getLogger(__name__)
+
 SCRIPT_TEMPLATE_PATH = pathlib.Path(__file__).parent / "data" / "client.js"
 assert SCRIPT_TEMPLATE_PATH.exists()
-
-logger = logging.getLogger(__name__)
 
 
 class _Template(string.Template):
@@ -29,7 +31,7 @@ class HotReloadMiddleware:
         self._app = app
 
         self._reconnect_interval = 1.0
-        self._ws_path = "/arel/hot-reload"  # Low collision risk with user routes.
+        self._ws_path = "/__arel__"  # No collision risk with user routes.
         self._notify = Notify()
         self._watchers = [
             FileWatcher(
@@ -106,7 +108,7 @@ class HotReloadMiddleware:
     async def _handle_websocket(
         self, scope: Scope, receive: Receive, send: Send
     ) -> None:
-        if scope["path"] != self._ws_path:
+        if scope["path"].rstrip("/") != self._ws_path:
             await self._app(scope, receive, send)
             return
 
@@ -122,102 +124,95 @@ class HotReloadMiddleware:
         [task.cancel() for task in pending]
         [task.result() for task in done]
 
-    def _get_script(self, scope: Scope) -> str:
+    def _get_script(self, scope: Scope) -> bytes:
         if not hasattr(self, "_script_template"):
             self._script_template = _Template(SCRIPT_TEMPLATE_PATH.read_text())
 
-        url = self._make_websocket_endpoint_url(scope)
+        scheme = {
+            "http": "ws",
+            "https": "wss",
+        }[scope["scheme"]]
+        # NOTE: 'server' is optionaly in the ASGI spec. In practice,
+        # we assume it is effectively provided by server implementations.
+        host, port = scope["server"]
+        path = self._ws_path
+
+        url = f"{scheme}://{host}:{port}{path}"
 
         js = self._script_template.substitute(
             {"url": url, "reconnect_interval": self._reconnect_interval}
         )
 
-        return f'<script type="text/javascript">{js}</script>'
-
-    def _make_websocket_endpoint_url(self, scope: Scope) -> str:
-        scheme = {
-            "http": "ws",
-            "https": "wss",
-        }[scope["scheme"]]
-
-        # NOTE: 'server' is optionaly in the ASGI spec. In practice,
-        # we assume it is effectively provided by server implementations.
-        host, port = scope["server"]
-
-        path = self._ws_path
-
-        return f"{scheme}://{host}:{port}{path}"
+        return f'<script type="text/javascript">{js}</script>'.encode("utf-8")
 
     async def _handle_http(self, scope: Scope, receive: Receive, send: Send) -> None:
-        script: Optional[bytes] = None
-        response_start_message: Optional[Message] = None
-        pending_response_body_messages: List[Message] = []
+        script = self._get_script(scope)
+        inject_script = False
 
         async def wrapped_send(message: Message) -> None:
-            nonlocal script, response_start_message
+            nonlocal inject_script
 
             if message["type"] == "http.response.start":
-                headers = Headers(raw=message["headers"])
-                content_type = headers.get("content-type", "")
+                headers = MutableHeaders(raw=message["headers"])
 
-                if "text/html" not in content_type:
+                if headers.get("content-type", "").partition(";")[0] != "text/html":
+                    # This is not HTML.
                     await send(message)
                     return
 
-                script = b"\n%s\n" % self._get_script(scope).encode("utf-8")
-
-                # Defer sending response headers until we know for sure
-                # that we'll alter the response body, because in
-                # that case we'll have to tweak 'Content-Length'.
-                response_start_message = message
-                return
-
-            assert message["type"] == "http.response.body"
-
-            if script is None:
-                await send(message)
-                return
-
-            body: bytes = message["body"]
-
-            try:
-                idx = body.index(b"</body>")
-            except ValueError:
-                if message.get("more_body"):
-                    # Maybe </body> will show up in a future chunk.
-                    pending_response_body_messages.append(message)
+                if headers.get("transfer-encoding") == "chunked":
+                    # Ignore streaming responses.
+                    await send(message)
                     return
 
-                # No luck, </body> is nowhere to be seen.
-                # The user has probably returned simplified
-                # HTML, such as "<h1>Hello, world!</h1>".
-                # We'll try to insert the script at the very end.
-                idx = len(body)
+                if headers.get("content-encoding"):
+                    msg = textwrap.dedent(
+                        f"""
+                        Cannot inject reload script into response encoded as {headers['content-encoding']!r}.
 
-            if response_start_message is not None:
-                patched_headers = []
+                        HINT: 'HotReloadMiddleware' must be placed inside any content-encoding middleware, such as:
 
-                for name, value in response_start_message["headers"]:
-                    if name.lower() == b"content-length":
-                        value = str(int(value) + len(script))
+                        middleware = [
+                            Middleware(GZipMiddleware),
+                            Middleware(HotReloadMiddleware, ...),
+                        ]
+                        """  # noqa: E501
+                    )
+                    warnings.warn(msg)
 
-                    patched_headers.append((name, value))
+                    await send(message)
+                    return
 
-                response_start_message["headers"] = patched_headers
+                inject_script = True
 
-                await send(response_start_message)
+                if "content-length" in headers:
+                    new_length = int(headers["content-length"]) + len(script)
+                    headers["content-length"] = str(new_length)
 
-                response_start_message = None
+                await send(message)
 
-            # Flush any body chunks buffered while we were looking
-            # for </body>.
-            for msg in pending_response_body_messages:
-                await send(msg)
+            else:
+                assert message["type"] == "http.response.body"
 
-            pending_response_body_messages.clear()
+                if not inject_script:
+                    await send(message)
+                    return
 
-            message["body"] = body[:idx] + script + body[idx:]
+                if message.get("more_body", False):
+                    raise RuntimeError("Unexpected streaming response")
 
-            await send(message)
+                body: bytes = message["body"]
+
+                try:
+                    start = body.index(b"</body>")
+                except ValueError:
+                    await send(message)
+                    return
+
+                head = body[:start]
+                tail = body[start:]
+
+                message["body"] = head + script + tail
+                await send(message)
 
         await self._app(scope, receive, wrapped_send)
