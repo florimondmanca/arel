@@ -50,12 +50,16 @@ class FileWatcher:
         [task.result() for task in done]
 
     async def startup(self) -> None:
-        assert self._task is None
+        if self._task is not None:
+            raise RuntimeError("Already started.")
+
         self._task = asyncio.create_task(self._main())
         logger.info(f"Started watching file changes at {self._path!r}")
 
     async def shutdown(self) -> None:
-        assert self._task is not None
+        if self._task is None:
+            raise RuntimeError("Was not started.")
+
         logger.info("Stopping file watching...")
         self._should_exit.set()
         await self._task

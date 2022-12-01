@@ -1,5 +1,5 @@
 bin = venv/bin/
-pysources = src example/server tests
+pysources = src/ tests/
 
 build:
 	${bin}python -m build
@@ -27,9 +27,6 @@ format:
 
 publish:
 	${bin}twine upload dist/*
-
-serve:
-	DEBUG=true ${bin}uvicorn example.server:app --reload --reload-dir ./example
 
 test:
 	${bin}pytest

@@ -59,7 +59,7 @@ class HotReloadMiddleware:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "lifespan":
             await self._handle_lifespan(scope, receive, send)
-        if scope["type"] == "websocket":
+        elif scope["type"] == "websocket":
             await self._handle_websocket(scope, receive, send)
         else:
             assert scope["type"] == "http"

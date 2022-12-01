@@ -15,7 +15,6 @@ Browser hot reload for Python ASGI web apps. Supports any ASGI web framework and
 * [Quickstart](#quickstart)
 * [Usage](#usage)
 * [How does this work?](#how-does-this-work)
-* [Example](#example)
 * [API Reference](#api-reference)
 
 ## Installation
@@ -76,7 +75,9 @@ This should play nicely with the server reload features of your ASGI server of c
 
 `arel` can watch an arbitrary set of directories and trigger browser reloads when changes are detected. This can be used to reload in case of changes to static files, HTML templates, GraphQL schemas, etc.
 
-To do so, use the `paths` option, which expects a list of [`Path`](#path) instances:
+To do so, use the `paths` option, which expects a list of [`Path`](#path) instances.
+
+For example, when using Starlette:
 
 ```python
 middleware = [
@@ -90,6 +91,8 @@ middleware = [
 ### Extra reload hooks
 
 You can register extra reload hooks to run extra server-side operations before triggering the browser reload, such as reloading cached content or re-initializing other server side resources.
+
+For example, when using Starlette:
 
 ```python
 async def reload_data():
@@ -107,7 +110,7 @@ middleware = [
 
 You probably only want to enable hot reload when running in some kind of debug mode.
 
-For example, if using Starlette, you can conditionally enable hot reload when the `DEBUG` environment variable is set, like so...
+For example, when using Starlette, you can conditionally enable hot reload when the `DEBUG` environment variable is set, like so...
 
 ```python
 import arel
@@ -142,22 +145,6 @@ The JS code is automatically inserted by the middleware into any HTML response r
 If the server disconnects, the JavaScript snippet will also refresh the page when reconnecting. This allows integration with ASGI servers that have reload functionality for the Python source code.
 
 `HotReloadMiddleware` is a [pure ASGI](https://www.starlette.io/middleware/#pure-asgi-middleware) middleware, so you should be able to use it with any ASGI framework, including Starlette, FastAPI, or Quart.
-
-## Example
-
-The [`example` directory](https://github.com/florimondmanca/arel/tree/master/example) contains an example Markdown-powered website. It uses `arel` to refresh the browser when Markdown content or HTML templates change.
-
-To spin up this example server, run:
-
-```
-make serve
-```
-
-Then visit http://localhost:8000. The web console will show you that your browser has connected to `arel`.
-
-Now, add, edit or delete one of the Markdown files in `pages/`. The page should refresh automatically.
-
-Lastly, try changing one of the Python files in `example/server/`, then hit save to trigger a server reload. Again, the browser should automatically refresh the page.
 
 ## API Reference
 
