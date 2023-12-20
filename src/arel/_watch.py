@@ -33,7 +33,7 @@ class FileWatcher:
         return self._should_exit_obj
 
     async def _watch(self) -> None:
-        async for changes in watchgod.awatch(self._path):
+        async for changes in watchfiles.awatch(self._path):
             changeset: ChangeSet = {}
             for event, group in itertools.groupby(changes, key=lambda item: item[0]):
                 label = CHANGE_EVENT_LABELS[event]
