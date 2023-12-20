@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
   "starlette==0.*",
-  "watchgod==0.*",
+  "watchfiles==0.*",
 ]
 dynamic = ["version", "readme"]
 
