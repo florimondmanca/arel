@@ -3,16 +3,16 @@ import itertools
 import logging
 from typing import Awaitable, Callable, Dict, List, Optional
 
-import watchgod
+import watchfiles
 
 logger = logging.getLogger(__name__)
 
 ChangeSet = Dict[str, List[str]]
 
 CHANGE_EVENT_LABELS = {
-    watchgod.Change.added: "added",
-    watchgod.Change.modified: "modified",
-    watchgod.Change.deleted: "deleted",
+    watchfiles.Change.added: "added",
+    watchfiles.Change.modified: "modified",
+    watchfiles.Change.deleted: "deleted",
 }
 
 
@@ -33,7 +33,7 @@ class FileWatcher:
         return self._should_exit_obj
 
     async def _watch(self) -> None:
-        async for changes in watchgod.awatch(self._path):
+        async for changes in watchfiles.awatch(self._path):
             changeset: ChangeSet = {}
             for event, group in itertools.groupby(changes, key=lambda item: item[0]):
                 label = CHANGE_EVENT_LABELS[event]
