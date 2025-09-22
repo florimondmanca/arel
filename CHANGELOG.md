@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.4.0 - 2025-09-22
+
+### Removed
+
+- Drop support for Python 3.7 and 3.8 (EOL versions). (Pull #39)
+
+### Added
+
+- Add support for Python 3.13. (Pull #39)
+
+### Fixed
+
+- Update watchfiles dependency to support modern versions (>=0.18,<2.0). (Pull #39)
+
 ## 0.3.0 - 2023-12-29
 
 ### Changed

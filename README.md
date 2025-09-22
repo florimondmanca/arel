@@ -22,7 +22,7 @@ Browser hot reload for Python ASGI web apps.
 ## Installation
 
 ```bash
-pip install 'arel==0.3.*'
+pip install 'arel==0.4.*'
 ```
 
 ## Quickstart
