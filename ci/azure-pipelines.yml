@@ -30,9 +30,12 @@ stages:
       - template: job--python-test.yml@templates
         parameters:
           jobs:
-            py37: null
+            py39: null
+            py310: null
+            py311: null
             py312:
               coverage: true
+            py313: null
 
   - stage: publish
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
