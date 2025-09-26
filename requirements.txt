@@ -4,21 +4,19 @@
 twine
 wheel
 
-# Example.
-jinja2==3.*
-markdown==3.*
-starlette==0.21.*
-uvicorn==0.19.*
-
 # Tooling and tests.
+asgi-lifespan==2.*
 autoflake
 black==22.10.*
 flake8==5.*
 httpx==0.23.*
 isort==5.*
+jinja2==3.*
+markdown==3.*
 mypy==0.990
 pytest==7.*
 pytest-asyncio==0.20.*
 pytest-cov
+starlette==0.21.*
 types-markdown
 websockets==10.*
