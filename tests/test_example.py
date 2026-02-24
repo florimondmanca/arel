@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+import arel
 import httpx
 import pytest
 
@@ -20,6 +21,17 @@ def make_change(path: Path) -> Iterator[None]:
         yield
     finally:
         path.write_text(content)
+
+
+def test_script_nonce() -> None:
+    hotreload = arel.HotReload(paths=[])
+    script_without_nonce = hotreload.script("/hot-reload")
+    assert script_without_nonce.startswith("<script>")
+    assert "nonce" not in script_without_nonce
+
+    script_with_nonce = hotreload.script("/hot-reload", nonce="abc123")
+    assert script_with_nonce.startswith('<script nonce="abc123">')
+    assert script_with_nonce.endswith("</script>")
 
 
 @pytest.mark.asyncio
