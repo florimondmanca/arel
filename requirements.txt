@@ -7,7 +7,8 @@ wheel
 # Example.
 jinja2==3.*
 markdown==3.*
-starlette>=1.0,<2.0
+starlette>=1.0,<2.0 ; python_version >= "3.10"
+starlette<1.0 ; python_version < "3.10"
 uvicorn==0.19.*
 
 # Tooling and tests.
