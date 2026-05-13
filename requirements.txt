@@ -7,7 +7,7 @@ wheel
 # Example.
 jinja2==3.*
 markdown==3.*
-starlette==0.21.*
+starlette>=1.0,<2.0
 uvicorn==0.19.*
 
 # Tooling and tests.

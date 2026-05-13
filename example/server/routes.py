@@ -16,9 +16,9 @@ async def render(request: Request) -> Response:
     if page_content is None:
         raise HTTPException(404)
 
-    context = {"request": request, "page_content": page_content}
+    context = {"page_content": page_content}
 
-    return templates.TemplateResponse("index.jinja", context=context)
+    return templates.TemplateResponse(request, "index.jinja", context=context)
 
 
 routes: list = [

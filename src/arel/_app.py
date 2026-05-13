@@ -2,9 +2,9 @@ import functools
 import logging
 import pathlib
 import string
-from typing import List, Sequence
+from typing import Awaitable, Callable, List, Sequence
 
-from starlette.concurrency import run_until_first_complete
+import anyio
 from starlette.types import Receive, Scope, Send
 from starlette.websockets import WebSocket
 
@@ -88,7 +88,11 @@ class HotReload:
         assert scope["type"] == "websocket"
         ws = WebSocket(scope, receive, send)
         await ws.accept()
-        await run_until_first_complete(
-            (self._watch_reloads, {"ws": ws}),
-            (self._wait_client_disconnect, {"ws": ws}),
-        )
+        async with anyio.create_task_group() as task_group:
+
+            async def run(func: Callable[[WebSocket], Awaitable[None]]) -> None:
+                await func(ws)
+                task_group.cancel_scope.cancel()
+
+            task_group.start_soon(run, self._watch_reloads)
+            task_group.start_soon(run, self._wait_client_disconnect)
