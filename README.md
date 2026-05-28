@@ -47,16 +47,25 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
    )
    ```
 
-2. Mount the hot reload endpoint, and register its startup and shutdown event handlers. If using Starlette, this can be done like this:
+2. Mount the hot reload endpoint, and wire its startup and shutdown into the application's lifespan. If using Starlette, this can be done like this:
 
    ```python
+   from contextlib import asynccontextmanager
+
    from starlette.applications import Starlette
    from starlette.routing import WebSocketRoute
 
+
+   @asynccontextmanager
+   async def lifespan(app):
+       await hotreload.startup()
+       yield
+       await hotreload.shutdown()
+
+
    app = Starlette(
        routes=[WebSocketRoute("/hot-reload", hotreload, name="hot-reload")],
-       on_startup=[hotreload.startup],
-       on_shutdown=[hotreload.shutdown],
+       lifespan=lifespan,
    )
    ```
 

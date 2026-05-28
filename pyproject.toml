@@ -23,7 +23,8 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "starlette==0.*",
+  "anyio>=3.4,<5",
+  "starlette>=0.21,<2.0",
   "watchfiles>=0.18,<2.0",
 ]
 dynamic = ["version", "readme"]

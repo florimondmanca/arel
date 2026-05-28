@@ -1,10 +1,18 @@
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
+from starlette.applications import Starlette
+
 from . import settings
 from .content import load_pages
 from .resources import hotreload
 
-on_startup = [load_pages]
-on_shutdown = []
 
-if settings.DEBUG:
-    on_startup += [hotreload.startup]
-    on_shutdown += [hotreload.shutdown]
+@asynccontextmanager
+async def lifespan(app: Starlette) -> AsyncIterator[None]:
+    await load_pages()
+    if settings.DEBUG:
+        await hotreload.startup()
+    yield
+    if settings.DEBUG:
+        await hotreload.shutdown()
