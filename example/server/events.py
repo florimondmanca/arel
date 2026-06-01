@@ -13,6 +13,8 @@ async def lifespan(app: Starlette) -> AsyncIterator[None]:
     await load_pages()
     if settings.DEBUG:
         await hotreload.startup()
-    yield
-    if settings.DEBUG:
-        await hotreload.shutdown()
+    try:
+        yield
+    finally:
+        if settings.DEBUG:
+            await hotreload.shutdown()
