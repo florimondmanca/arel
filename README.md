@@ -59,8 +59,10 @@ Although the exact instructions to set up hot reload with `arel` depend on the s
    @asynccontextmanager
    async def lifespan(app):
        await hotreload.startup()
-       yield
-       await hotreload.shutdown()
+       try:
+           yield
+       finally:
+           await hotreload.shutdown()
 
 
    app = Starlette(
