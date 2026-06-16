@@ -39,10 +39,20 @@ class HotReload:
         self, changeset: ChangeSet, *, on_reload: List[ReloadFunc]
     ) -> None:
         description = ", ".join(
-            f"file {event} at {', '.join(f'{event!r}' for event in changeset[event])}"
+            f"file {event} at {', '.join(f'{file!r}' for file in changeset[event])}"
             for event in changeset
         )
         logger.warning("Detected %s. Triggering reload...", description)
+
+        all_files = []
+        for event in changeset:
+            all_files.extend(changeset[event])
+
+        only_css_changes = all(all_files.endswith(".css") for all_files in all_files)
+        if only_css_changes:
+            for file in all_files:
+                await self.notify.notify_css(file)
+            return
 
         # Run server-side hooks first.
         for callback in on_reload:
@@ -81,8 +91,8 @@ class HotReload:
             pass  # pragma: no cover
 
     async def _watch_reloads(self, ws: WebSocket) -> None:
-        async for _ in self.notify.watch():
-            await ws.send_text("reload")
+        async for msg in self.notify.watch():
+            await ws.send_text(msg)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "websocket"
