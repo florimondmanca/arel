@@ -3,12 +3,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-import arel
 import httpx
 import pytest
 
 # See: https://github.com/aaugustin/websockets/issues/940#issuecomment-874012438  # noqa: E501
 from websockets.client import connect
+
+import arel
 
 from .common import EXAMPLE_DIR
 
