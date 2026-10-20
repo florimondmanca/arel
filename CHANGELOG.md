@@ -4,17 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 0.5.0 - 2026-08-02
+## 0.5.0 - 2026-10-20
 
 ### Added
 
-- Add support for Starlette 1.x. (Pull #42)
+- Add support for Starlette 1.x. This widens the `starlette` dependency to `>=0.21,<2.0`, and adds `anyio>=3.4,<5` as a direct dependency. (Pull #42)
+- Add optional nonce parameter to HotReload.script() (Pull #41)
 
 ### Changed
 
-- Widen the `starlette` dependency to `>=0.21,<2.0`, and add `anyio>=3.4,<5` as a direct dependency. (Pull #42)
-- Use `anyio.create_task_group()` instead of Starlette's deprecated `run_until_first_complete`. (Pull #42)
-- Register `hotreload.startup` and `hotreload.shutdown` from a `lifespan` context manager. Starlette 1.0 removed the `on_startup` and `on_shutdown` arguments. (Pull #42, #43)
+- Users must now register `hotreload.startup` and `hotreload.shutdown` from a `lifespan` context manager. Starlette 1.0 removed the `on_startup` and `on_shutdown` arguments. Please see the updated README for usage. (Pull #42, #43)
 
 ## 0.4.0 - 2025-09-22
 
