@@ -9,6 +9,8 @@ import pytest
 # See: https://github.com/aaugustin/websockets/issues/940#issuecomment-874012438  # noqa: E501
 from websockets.client import connect
 
+import arel
+
 from .common import EXAMPLE_DIR
 
 
@@ -20,6 +22,17 @@ def make_change(path: Path) -> Iterator[None]:
         yield
     finally:
         path.write_text(content)
+
+
+def test_script_nonce() -> None:
+    hotreload = arel.HotReload(paths=[])
+    script_without_nonce = hotreload.script("/hot-reload")
+    assert script_without_nonce.startswith("<script>")
+    assert "nonce" not in script_without_nonce
+
+    script_with_nonce = hotreload.script("/hot-reload", nonce="abc123")
+    assert script_with_nonce.startswith('<script nonce="abc123">')
+    assert script_with_nonce.endswith("</script>")
 
 
 @pytest.mark.asyncio

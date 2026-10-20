@@ -50,7 +50,7 @@ class HotReload:
 
         await self.notify.notify()
 
-    def script(self, url: str) -> str:
+    def script(self, url: str, nonce: str = "") -> str:
         if not hasattr(self, "_script_template"):
             self._script_template = _Template(SCRIPT_TEMPLATE_PATH.read_text())
 
@@ -58,7 +58,8 @@ class HotReload:
             {"url": url, "reconnect_interval": self._reconnect_interval}
         )
 
-        return f"<script>{content}</script>"
+        nonce_attr = f' nonce="{nonce}"' if nonce else ""
+        return f"<script{nonce_attr}>{content}</script>"
 
     async def startup(self) -> None:
         try:
